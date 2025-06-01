@@ -61,7 +61,7 @@ const AddVehicle = () => {
         license_plate: vehicle.license_plate || '',
         insurance_policy: vehicle.insurance_policy || '',
         insurance_expiry: vehicle.insurance_expiry || '',
-        oil_type: vehicle.insurance_expiry || '',
+        oil_type: vehicle.oil_type || '',
         oil_change_interval_miles: vehicle.oil_change_interval_miles|| '',
         oil_change_interval_months: vehicle.oil_change_interval_months || '',
         notes: vehicle.notes || ''
