@@ -62,13 +62,13 @@ class Vehicle {
   // Create a new vehicle
   static create(vehicleData) {
     return new Promise((resolve, reject) => {
-      const { type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, notes, image_path } = vehicleData;
+      const { type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months, notes, image_path } = vehicleData;
       const query = `
-        INSERT INTO vehicles (type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, notes, image_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO vehicles (type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months, notes, image_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       
-      db.run(query, [type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, notes, image_path], function(err) {
+      db.run(query, [type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months, notes, image_path], function(err) {
         if (err) {
           reject(err);
         } else {
@@ -86,6 +86,9 @@ class Vehicle {
             license_plate,
             insurance_policy,
             insurance_expiry,
+            oil_type, 
+            oil_change_interval_miles, 
+            oil_change_interval_months,
             notes,
             image_path
           });
@@ -97,14 +100,14 @@ class Vehicle {
   // Update a vehicle
   static update(id, vehicleData) {
     return new Promise((resolve, reject) => {
-      const { type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, notes, image_path } = vehicleData;
+      const { type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months, notes, image_path } = vehicleData;
       const query = `
         UPDATE vehicles 
-        SET type = ?, make = ?, model = ?, year = ?, vin = ?, color = ?, purchase_date = ?, purchase_price = ?, current_mileage = ?, license_plate = ?, insurance_policy = ?, insurance_expiry = ?, notes = ?, image_path = ?
+        SET type = ?, make = ?, model = ?, year = ?, vin = ?, color = ?, purchase_date = ?, purchase_price = ?, current_mileage = ?, license_plate = ?, insurance_policy = ?, insurance_expiry = ?, oil_type = ?, oil_change_interval_miles = ?, oil_change_interval_months = ?, notes = ?, image_path = ?
         WHERE id = ?
       `;
       
-      db.run(query, [type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, notes, image_path, id], function(err) {
+      db.run(query, [type, make, model, year, vin, color, purchase_date, purchase_price, current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months, notes, image_path, id], function(err) {
         if (err) {
           reject(err);
         } else if (this.changes === 0) {
