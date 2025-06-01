@@ -82,7 +82,7 @@ router.post('/', uploadVehicleImage.single('image'), async (req, res) => {
     console.log('Received vehicle data:', req.body); // Debug log
     
     const { type, make, model, year, vin, color, purchase_date, purchase_price,
-            current_mileage, license_plate, insurance_policy, insurance_expiry, notes } = req.body;
+            current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months, notes } = req.body;
     
     // Validate required fields
     if (!type || !make || !model) {
@@ -110,8 +110,12 @@ router.post('/', uploadVehicleImage.single('image'), async (req, res) => {
       license_plate: license_plate || null,
       insurance_policy: insurance_policy || null,
       insurance_expiry: insurance_expiry || null,
+      oil_type: oil_type || null,
+      oil_change_interval_miles: oil_change_interval_miles ? parseInt(oil_change_interval_miles) : null,
+      oil_change_interval_months: oil_change_interval_months ? parseInt(oil_change_interval_months) : null,
+      insurance_expiry: insurance_expiry || null,
       notes: notes || null,
-      image_path: req.file ? `/uploads/vehicles/${req.file.filename}` : null
+      image_path: req.file ? /uploads/vehicles/${req.file.filename} : null
     };
     
     console.log('Vehicle data to save:', vehicleData); // Debug log
@@ -128,7 +132,7 @@ router.post('/', uploadVehicleImage.single('image'), async (req, res) => {
 router.put('/:id', uploadVehicleImage.single('image'), async (req, res) => {
   try {
     const { type, make, model, year, vin, color, purchase_date, purchase_price,
-            current_mileage, license_plate, insurance_policy, insurance_expiry, notes } = req.body;
+            current_mileage, license_plate, insurance_policy, insurance_expiry, oil_type, oil_change_interval_miles, oil_change_interval_months,notes } = req.body;
     const vehicleId = req.params.id;
     
     // Get existing vehicle first
@@ -147,9 +151,12 @@ router.put('/:id', uploadVehicleImage.single('image'), async (req, res) => {
       license_plate: license_plate !== undefined ? license_plate : existingVehicle.license_plate,
       insurance_policy: insurance_policy !== undefined ? insurance_policy : existingVehicle.insurance_policy,
       insurance_expiry: insurance_expiry !== undefined ? insurance_expiry : existingVehicle.insurance_expiry,
+      oil_type: oil_type !== undefined ? oil_type : existingVehicle.oil_type,
+      oil_change_interval_miles: oil_change_interval_miles !== undefined ? (oil_change_interval_miles ? parseInt(oil_change_interval_miles) : null) : existingVehicle.oil_change_interval_miles,
+      oil_change_interval_months: oil_change_interval_months !== undefined ? (oil_change_interval_months ? parseInt(oil_change_interval_months) : null) : existingVehicle.oil_change_interval_months,
       notes: notes !== undefined ? notes : existingVehicle.notes,
       image_path: req.file 
-        ? `/uploads/vehicles/${req.file.filename}` 
+        ? /uploads/vehicles/${req.file.filename} 
         : existingVehicle.image_path
     };
     
