@@ -440,6 +440,28 @@ class Maintenance {
       });
     });
   }
+    // Get last oil change for a vehicle
+  static getLastOilChange(vehicleId) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT * FROM maintenance 
+        WHERE vehicle_id = ? 
+        AND (LOWER(description) LIKE '%oil change%' 
+             OR LOWER(tag) LIKE '%oil%'
+             OR LOWER(service_type) LIKE '%oil%')
+        ORDER BY date DESC, id DESC
+        LIMIT 1
+      `;
+      
+      db.get(query, [vehicleId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row || null);
+        }
+      });
+    });
+  }
 }
 
 module.exports = Maintenance;
