@@ -18,7 +18,7 @@ const initDatabase = () => {
   db.serialize(() => {
     // Vehicles table
     db.run(`
-      CREATE TABLE IF NOT EXISTS vehicles (
+     CREATE TABLE IF NOT EXISTS vehicles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT NOT NULL CHECK(type IN ('bike', 'motorcycle', 'car')),
     make TEXT NOT NULL,
@@ -32,6 +32,9 @@ const initDatabase = () => {
     license_plate TEXT,
     insurance_policy TEXT,
     insurance_expiry DATE,
+    oil_type TEXT,
+    oil_change_interval_miles INTEGER,
+    oil_change_interval_months INTEGER,
     notes TEXT,
     image_path TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
