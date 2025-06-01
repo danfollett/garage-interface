@@ -114,7 +114,7 @@ router.post('/', uploadVehicleImage.single('image'), async (req, res) => {
       oil_change_interval_miles: oil_change_interval_miles ? parseInt(oil_change_interval_miles) : null,
       oil_change_interval_months: oil_change_interval_months ? parseInt(oil_change_interval_months) : null,
       notes: notes || null,
-      image_path: req.file ? /uploads/vehicles/${req.file.filename} : null
+      image_path: req.file ? `/uploads/vehicles/${req.file.filename}` : null
     };
     
     console.log('Vehicle data to save:', vehicleData); // Debug log
@@ -155,7 +155,7 @@ router.put('/:id', uploadVehicleImage.single('image'), async (req, res) => {
       oil_change_interval_months: oil_change_interval_months !== undefined ? (oil_change_interval_months ? parseInt(oil_change_interval_months) : null) : existingVehicle.oil_change_interval_months,
       notes: notes !== undefined ? notes : existingVehicle.notes,
       image_path: req.file 
-        ? /uploads/vehicles/${req.file.filename} 
+        ? `/uploads/vehicles/${req.file.filename} `
         : existingVehicle.image_path
     };
     
