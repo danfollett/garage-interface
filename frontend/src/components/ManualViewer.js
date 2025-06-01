@@ -3,6 +3,7 @@ import { Upload, FileText, Download, Trash2, X, ExternalLink, Search, ChevronRig
 import { Document, Page, pdfjs } from 'react-pdf';
 import { manualAPI } from '../services/api';
 import { formatDate, formatFileSize, ACCEPTED_FILE_TYPES, FILE_SIZE_LIMITS } from '../utils/constants';
+import { getApiUrl } from '../utils/api-utils';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.mjs';
@@ -496,7 +497,7 @@ const ManualViewer = ({ manuals, vehicleId, onDelete, onUpdate }) => {
                     Page {pageNumber} of {numPages}
                   </div>
                   <a
-                    href={`http://localhost:5000${selectedManual.file_path}`}
+                    href={`${getApiUrl()}${selectedManual.file_path}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-blue-600 hover:bg-blue-700 p-2 rounded transition-colors"
@@ -521,7 +522,7 @@ const ManualViewer = ({ manuals, vehicleId, onDelete, onUpdate }) => {
               {/* PDF Viewer */}
               <div className="flex-1 overflow-auto p-4 bg-gray-900">
                 <Document
-                  file={`http://localhost:5000${selectedManual.file_path}`}
+                  file={`${getApiUrl()}${selectedManual.file_path}`}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={(error) => {
                     console.error('Error loading PDF:', error);

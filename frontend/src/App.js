@@ -14,6 +14,7 @@ function App() {
           <Route path="/vehicle/:id" element={<VehicleView />} />
           <Route path="/add-vehicle" element={<AddVehicle />} />
           <Route path="/edit-vehicle/:id" element={<AddVehicle />} />
+         
         </Routes>
       </Layout>
     </Router>

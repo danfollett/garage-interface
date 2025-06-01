@@ -19,14 +19,24 @@ const initDatabase = () => {
     // Vehicles table
     db.run(`
       CREATE TABLE IF NOT EXISTS vehicles (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT CHECK(type IN ('bike', 'motorcycle', 'car')) NOT NULL,
-        make TEXT NOT NULL,
-        model TEXT NOT NULL,
-        year INTEGER,
-        image_path TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL CHECK(type IN ('bike', 'motorcycle', 'car')),
+    make TEXT NOT NULL,
+    model TEXT NOT NULL,
+    year INTEGER,
+    vin TEXT,
+    color TEXT,
+    purchase_date DATE,
+    purchase_price REAL,
+    current_mileage INTEGER,
+    license_plate TEXT,
+    insurance_policy TEXT,
+    insurance_expiry DATE,
+    notes TEXT,
+    image_path TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
     `);
 
     // Service manuals table

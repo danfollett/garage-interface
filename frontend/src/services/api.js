@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL+'/api' || 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -15,12 +15,20 @@ export const vehicleAPI = {
   getAll: () => api.get('/vehicles'),
   getById: (id) => api.get(`/vehicles/${id}`),
   getByType: (type) => api.get(`/vehicles/type/${type}`),
-  create: (formData) => api.post('/vehicles', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
-  update: (id, formData) => api.put(`/vehicles/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  create: (formData) => {
+    // Log the form data to debug
+    console.log('Sending vehicle data:', Array.from(formData.entries()));
+    return api.post('/vehicles', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  update: (id, formData) => {
+    // Log the form data to debug
+    console.log('Updating vehicle data:', Array.from(formData.entries()));
+    return api.put(`/vehicles/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   delete: (id) => api.delete(`/vehicles/${id}`),
   search: (query) => api.get(`/vehicles/search?q=${query}`),
   getStats: () => api.get('/vehicles/stats'),
@@ -83,8 +91,8 @@ export const maintenanceAPI = {
     params: { startDate, endDate }
   }),
   getTags: () => api.get('/maintenance/tags'),
-  getRecent: (limit) => api.get('/maintenance/recent',limit),
   createTag: (data) => api.post('/maintenance/tags', data),
+  getRecent: () => api.get('/maintenance/recent'),
   getLogsByTag: (tagId) => api.get(`/maintenance/tags/${tagId}/logs`),
 };
 

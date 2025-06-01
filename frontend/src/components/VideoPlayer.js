@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Upload, Video, Youtube, Trash2, X, Plus, Play } from 'lucide-react';
 import { videoAPI } from '../services/api';
 import { formatDate, ACCEPTED_FILE_TYPES, FILE_SIZE_LIMITS } from '../utils/constants';
+import { getApiUrl } from '../utils/api-utils';
 
 const VideoPlayer = ({ videos, vehicleId, onDelete, onUpdate }) => {
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -129,7 +130,7 @@ const VideoPlayer = ({ videos, vehicleId, onDelete, onUpdate }) => {
                 <img
                   src={video.thumbnail_path.startsWith('http') 
                     ? video.thumbnail_path 
-                    : `http://localhost:5000${video.thumbnail_path}`}
+                    : `${getApiUrl()}${video.thumbnail_path}`}
                   alt={video.title}
                   className="w-full h-full object-cover"
                 />
@@ -339,7 +340,7 @@ const VideoPlayer = ({ videos, vehicleId, onDelete, onUpdate }) => {
                 <video
                   controls
                   className="w-full rounded-lg"
-                  src={`http://localhost:5000${selectedVideo.path_or_url}`}
+                  src={`${getApiUrl()}${selectedVideo.path_or_url}`}
                 >
                   Your browser does not support the video tag.
                 </video>

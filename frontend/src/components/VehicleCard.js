@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Video, Wrench, Car, Bike, Gauge } from 'lucide-react';
 import { getVehicleDisplayName } from '../utils/constants';
+import { getApiUrl } from '../utils/api-utils';
 
 const VehicleCard = ({ vehicle }) => {
   const VehicleIcon = vehicle.type === 'car' ? Car : Bike;
@@ -15,7 +16,7 @@ const VehicleCard = ({ vehicle }) => {
       <div className="aspect-video bg-gray-800 relative">
         {vehicle.image_path ? (
           <img
-            src={`http://localhost:5000${vehicle.image_path}`}
+            src={`${getApiUrl()}${vehicle.image_path}`}
             alt={getVehicleDisplayName(vehicle)}
             className="w-full h-full object-cover"
             onError={(e) => {

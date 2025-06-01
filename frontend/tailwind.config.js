@@ -4,6 +4,17 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '1rem',
+      screens: {
+        sm: '1920px',
+        md: '1920px',
+        lg: '1920px', // custom
+        xl: '1920px', // custom
+        '2xl': '1920px', // custom
+      },
+    },
     extend: {
       colors: {
         'garage-gray': '#1a1a1a',

@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Wrench } from 'lucide-react';
-import VehicleGrid from '../components/VehicleGrid';
+import { Link, useNavigate } from 'react-router-dom';
+import { Car, Bike, Plus, Grid, List, Wrench, ChevronRight } from 'lucide-react';
 import { vehicleAPI, maintenanceAPI } from '../services/api';
-import { VEHICLE_TYPES, VEHICLE_TYPE_LABELS, VEHICLE_TYPE_COLORS } from '../utils/constants';
+import VehicleCard from '../components/VehicleCard';
+import { getVehicleDisplayName, formatDate, formatCurrency } from '../utils/constants';
+import { getApiUrl } from '../utils/api-utils';
 
 const Home = () => {
-  const [vehicles, setVehicles] = useState({
-    bike: [],
-    motorcycle: [],
-    car: []
-  });
-  const [stats, setStats] = useState(null);
+  const navigate = useNavigate();
+  const [vehicles, setVehicles] = useState([]);
   const [recentMaintenance, setRecentMaintenance] = useState([]);
+  const [stats, setStats] = useState({
+    totalVehicles: 0,
+    totalServices: 0,
+    totalCost: 0,
+    lastService: null
+  });
+  const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,19 +29,38 @@ const Home = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch all data in parallel
-      const [vehiclesData, statsData,maintenanceData] = await Promise.all([
-        vehicleAPI.getAll(),
-        vehicleAPI.getStats(),
-      maintenanceAPI.getRecent()
-      ]);
+      // Fetch vehicles - returns grouped by type
+      const vehiclesData = await vehicleAPI.getAll();
+      
+      // Flatten the grouped structure into a single array
+      const allVehicles = [];
+      if (vehiclesData.bike) allVehicles.push(...vehiclesData.bike);
+      if (vehiclesData.motorcycle) allVehicles.push(...vehiclesData.motorcycle);
+      if (vehiclesData.car) allVehicles.push(...vehiclesData.car);
+      
+      setVehicles(allVehicles);
 
-      setVehicles(vehiclesData);
-      setStats(statsData);
-      setRecentMaintenance(maintenanceData);
+      // Fetch recent maintenance
+      const maintenanceData = await maintenanceAPI.getRecent(5);
+      setRecentMaintenance(maintenanceData || []);
+
+      // Fetch all maintenance for stats
+      const allMaintenanceData = await maintenanceAPI.getAll();
+      const maintenanceArray = allMaintenanceData || [];
+      
+      // Calculate stats
+      const totalCost = maintenanceArray.reduce((sum, log) => sum + (log.cost || 0), 0);
+      const lastService = maintenanceArray.length > 0 ? maintenanceArray[0].date : null;
+
+      setStats({
+        totalVehicles: allVehicles.length,
+        totalServices: maintenanceArray.length,
+        totalCost,
+        lastService
+      });
     } catch (err) {
-      setError(err.message);
       console.error('Error fetching data:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -45,7 +68,7 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-screen">
         <div className="text-2xl text-gray-400">Loading...</div>
       </div>
     );
@@ -53,13 +76,13 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <p className="text-2xl text-red-500 mb-4">Error loading data</p>
-          <p className="text-gray-400">{error}</p>
+          <p className="text-gray-400 mb-4">{error}</p>
           <button
             onClick={fetchData}
-            className="mt-4 bg-garage-accent hover:bg-orange-600 px-6 py-2 rounded-lg transition-colors"
+            className="bg-garage-accent hover:bg-orange-600 px-6 py-2 rounded-lg transition-colors"
           >
             Retry
           </button>
@@ -69,113 +92,173 @@ const Home = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      {/*<div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Garage Management System</h1>
-        <p className="text-gray-400 text-lg">
-          Access service manuals, video tutorials, and maintenance logs for all your vehicles
-        </p>
-      </div>/*}
-
-      {/* Statistics */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-garage-gray rounded-lg p-6 text-center">
-            <p className="text-3xl font-bold text-garage-accent">{stats.total_count}</p>
-            <p className="text-gray-400">Total Vehicles</p>
-          </div>
-          <div className="bg-garage-gray rounded-lg p-6 text-center">
-            <p className="text-3xl font-bold text-blue-500">{stats.total_manuals}</p>
-            <p className="text-gray-400">Service Manuals</p>
-          </div>
-          <div className="bg-garage-gray rounded-lg p-6 text-center">
-            <p className="text-3xl font-bold text-green-500">{stats.total_videos}</p>
-            <p className="text-gray-400">Video Tutorials</p>
-          </div>
-          <div className="bg-garage-gray rounded-lg p-6 text-center">
-            <p className="text-3xl font-bold text-purple-500">{stats.total_maintenance}</p>
-            <p className="text-gray-400">Maintenance Logs</p>
-          </div>
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <div className="w-80 bg-gray-900 p-6 overflow-y-auto border-r border-gray-800">
+        {/* Logo/Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-garage-accent mb-2">My Garage</h1>
+          <p className="text-gray-400 text-sm">Vehicle Management System</p>
         </div>
-      )}
 
-      {/* Recent Maintenance */}
-      {recentMaintenance.length > 0 && (
-        <div className="bg-garage-gray rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4 flex items-center">
-            <Wrench className="mr-2" />
-            Recent Maintenance
-          </h2>
+        {/* Stats Overview */}
+        <div className="bg-garage-gray rounded-lg p-5 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Overview</h2>
           <div className="space-y-3">
-            {recentMaintenance.map((log) => (
-              <Link
-                key={log.id}
-                to={`/vehicle/${log.vehicle_id}`}
-                className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <div>
-                  <p className="font-semibold">
-                    {log.make} {log.model} - {log.description}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {new Date(log.date).toLocaleDateString()}
-                    {log.mileage && ` • ${log.mileage.toLocaleString()} miles`}
-                  </p>
-                </div>
-                {log.tags && log.tags.length > 0 && (
-                  <div className="flex gap-2">
-                    {log.tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="px-2 py-1 rounded-full text-xs"
-                        style={{ backgroundColor: tag.color + '40', color: tag.color }}
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Link>
-            ))}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Total Vehicles</span>
+              <span className="text-2xl font-bold">{stats.totalVehicles}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Total Services</span>
+              <span className="text-2xl font-bold">{stats.totalServices}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Total Cost</span>
+              <span className="text-xl font-bold text-green-500">
+                {formatCurrency(stats.totalCost)}
+              </span>
+            </div>
+            {stats.lastService && (
+              <div className="pt-3 mt-3 border-t border-gray-700">
+                <p className="text-sm text-gray-400">Last Service</p>
+                <p className="font-semibold">{formatDate(stats.lastService)}</p>
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Vehicle Sections */}
-      {Object.values(VEHICLE_TYPES).map((type) => (
-        <section key={type} className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className={`text-3xl font-bold bg-gradient-to-r ${VEHICLE_TYPE_COLORS[type]} bg-clip-text text-transparent`}>
-              {VEHICLE_TYPE_LABELS[type]}
-            </h2>
-            <Link
-              to={`/add-vehicle?type=${type}`}
-              className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors touch-target"
-            >
-              <Plus size={20} />
-              <span>Add {VEHICLE_TYPE_LABELS[type].slice(0, -1)}</span>
-            </Link>
-          </div>
-          
-          {vehicles[type].length > 0 ? (
-            <VehicleGrid vehicles={vehicles[type]} />
+        {/* Recent Maintenance */}
+        <div className="bg-garage-gray rounded-lg p-5 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Recent Maintenance</h2>
+          {recentMaintenance.length > 0 ? (
+            <div className="space-y-3">
+              {recentMaintenance.map((log) => {
+                const vehicle = vehicles.find(v => v.id === log.vehicle_id);
+                return (
+                  <Link
+                    key={log.id}
+                    to={`/vehicle/${log.vehicle_id}`}
+                    className="block p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="text-sm font-medium mb-1">
+                      {vehicle ? getVehicleDisplayName(vehicle) : 'Unknown Vehicle'}
+                    </div>
+                    <div className="text-xs text-gray-400 mb-1">
+                      {formatDate(log.date)}
+                    </div>
+                    <p className="text-sm text-gray-300 line-clamp-2">
+                      {log.description}
+                    </p>
+                    {log.cost && (
+                      <p className="text-sm text-green-500 mt-1 font-semibold">
+                        {formatCurrency(log.cost)}
+                      </p>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           ) : (
-            <div className="bg-garage-gray rounded-lg p-12 text-center">
-              <p className="text-gray-400 text-lg mb-4">
-                No {VEHICLE_TYPE_LABELS[type].toLowerCase()} added yet
-              </p>
+            <p className="text-gray-400 text-center py-4 text-sm">
+              No maintenance records yet
+            </p>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-3">
+          <Link
+            to="/add-vehicle"
+            className="flex items-center justify-center space-x-2 bg-garage-accent hover:bg-orange-600 px-4 py-3 rounded-lg transition-colors w-full"
+          >
+            <Plus size={20} />
+            <span>Add Vehicle</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-6 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold">My Vehicles</h2>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded ${viewMode === 'grid' ? 'bg-garage-accent' : 'bg-gray-700'}`}
+                title="Grid view"
+              >
+                <Grid size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded ${viewMode === 'list' ? 'bg-garage-accent' : 'bg-gray-700'}`}
+                title="List view"
+              >
+                <List size={20} />
+              </button>
+            </div>
+          </div>
+
+          {vehicles.length === 0 ? (
+            <div className="bg-garage-gray rounded-lg p-16 text-center">
+              <Car size={64} className="mx-auto text-gray-600 mb-4" />
+              <p className="text-gray-400 text-lg mb-6">No vehicles in your garage yet</p>
               <Link
-                to={`/add-vehicle?type=${type}`}
+                to="/add-vehicle"
                 className="inline-flex items-center space-x-2 bg-garage-accent hover:bg-orange-600 px-6 py-3 rounded-lg transition-colors"
               >
                 <Plus size={20} />
-                <span>Add Your First {VEHICLE_TYPE_LABELS[type].slice(0, -1)}</span>
+                <span>Add Your First Vehicle</span>
               </Link>
             </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+              {vehicles.map((vehicle) => (
+                <VehicleCard key={vehicle.id} vehicle={vehicle} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {vehicles.map((vehicle) => (
+                <Link
+                  key={vehicle.id}
+                  to={`/vehicle/${vehicle.id}`}
+                  className="block bg-garage-gray hover:bg-gray-700 rounded-lg p-4 transition-colors"
+                >
+                  <div className="flex items-center space-x-4">
+                    {vehicle.image_path ? (
+                      <img
+                        src={`${getApiUrl()}${vehicle.image_path}`}
+                        alt={getVehicleDisplayName(vehicle)}
+                        className="w-16 h-16 object-cover rounded"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '';
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className={`w-16 h-16 bg-gray-700 rounded ${vehicle.image_path ? 'hidden' : 'flex'} items-center justify-center`}
+                      style={{ display: vehicle.image_path ? 'none' : 'flex' }}
+                    >
+                      {vehicle.type === 'car' ? <Car size={24} /> : <Bike size={24} />}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{getVehicleDisplayName(vehicle)}</h3>
+                      <p className="text-gray-400 text-sm capitalize">{vehicle.type}</p>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-400" />
+                  </div>
+                </Link>
+              ))}
+            </div>
           )}
-        </section>
-      ))}
+        </div>
+      </div>
     </div>
   );
 };

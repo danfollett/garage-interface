@@ -6,6 +6,7 @@ import { getVehicleDisplayName, formatDate, formatCurrency } from '../utils/cons
 import ManualViewer from '../components/ManualViewer';
 import VideoPlayer from '../components/VideoPlayer';
 import MaintenanceLog from '../components/MaintenanceLog';
+import { getApiUrl } from '../utils/api-utils';
 
 const VehicleView = () => {
   const { id } = useParams();
@@ -168,7 +169,7 @@ const VehicleView = () => {
               <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden">
                 {vehicle.image_path ? (
                   <img
-                    src={`http://localhost:5000${vehicle.image_path}`}
+                    src={`${getApiUrl()}${vehicle.image_path}`}
                     alt={getVehicleDisplayName(vehicle)}
                     className="w-full h-full object-cover"
                   />
