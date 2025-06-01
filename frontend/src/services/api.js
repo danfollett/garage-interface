@@ -94,6 +94,7 @@ export const maintenanceAPI = {
   createTag: (data) => api.post('/maintenance/tags', data),
   getRecent: () => api.get('/maintenance/recent'),
   getLogsByTag: (tagId) => api.get(`/maintenance/tags/${tagId}/logs`),
+  getLastOilChange: (vehicleId) => api.get(`/maintenance/vehicle/${vehicleId}/last-oil-change`),
 };
 
 // Error handler
