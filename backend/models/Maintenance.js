@@ -444,13 +444,17 @@ class Maintenance {
   static getLastOilChange(vehicleId) {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT * FROM maintenance 
-        WHERE vehicle_id = ? 
-        AND (LOWER(description) LIKE '%oil change%' 
-             OR LOWER(tag) LIKE '%oil%'
-             OR LOWER(service_type) LIKE '%oil%')
-        ORDER BY date DESC, id DESC
-        LIMIT 1
+       SELECT ml.*
+        FROM maintenance_logs ml
+        LEFT JOIN maintenance_log_tags mlt ON ml.id = mlt.log_id
+        LEFT JOIN maintenance_tags mt ON mlt.tag_id = mt.id
+        WHERE ml.vehicle_id = ?
+          AND (
+            LOWER(ml.description) LIKE '%oil change%'
+            OR LOWER(mt.name) LIKE '%oil%'
+          )
+        ORDER BY ml.date DESC, ml.id DESC
+        LIMIT 1;
       `;
       
       db.get(query, [vehicleId], (err, row) => {
