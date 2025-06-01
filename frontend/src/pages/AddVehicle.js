@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, Save, Upload, Car, Bike, X } from 'lucide-react';
 import { vehicleAPI } from '../services/api';
@@ -25,6 +25,9 @@ const AddVehicle = () => {
     license_plate: '',
     insurance_policy: '',
     insurance_expiry: '',
+    oil_type:'',
+    oil_change_interval_miles:'',
+    oil_change_interval_months:'',
     notes: ''
   });
   
@@ -58,6 +61,9 @@ const AddVehicle = () => {
         license_plate: vehicle.license_plate || '',
         insurance_policy: vehicle.insurance_policy || '',
         insurance_expiry: vehicle.insurance_expiry || '',
+        oil_type: vehicle.insurance_expiry || '',
+        oil_change_interval_miles: vehicle.oil_change_interval_miles|| '',
+        oil_change_interval_months: vehicle.oil_change_interval_months || '',
         notes: vehicle.notes || ''
       });
       if (vehicle.image_path) {
@@ -122,6 +128,9 @@ const AddVehicle = () => {
     formDataToSend.append('license_plate', formData.license_plate);
     formDataToSend.append('insurance_policy', formData.insurance_policy);
     formDataToSend.append('insurance_expiry', formData.insurance_expiry);
+    formDataToSend.append('oil_type', formData.oil_type);
+    formDataToSend.append('oil_change_interval_miles', formData.oil_change_interval_miles);
+    formDataToSend.append('oil_change_interval_months', formData.oil_change_interval_months);
     formDataToSend.append('notes', formData.notes);
     
     if (imageFile) {
@@ -393,7 +402,44 @@ const AddVehicle = () => {
                   className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-garage-accent"
                 />
               </div>
-
+                {/* Oil Change Information - Only for cars and motorcycles */}
+                {(formData.type === 'car' || formData.type === 'motorcycle') && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Oil Change Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Oil Type</label>
+                        <input
+                          type="text"
+                          value={formData.oil_type}
+                          onChange={(e) => setFormData({ ...formData, oil_type: e.target.value })}
+                          placeholder="e.g., 5W-30"
+                          className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-garage-accent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Change Interval (Miles)</label>
+                        <input
+                          type="number"
+                          value={formData.oil_change_interval_miles}
+                          onChange={(e) => setFormData({ ...formData, oil_change_interval_miles: e.target.value })}
+                          placeholder="e.g., 5000"
+                          className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-garage-accent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Change Interval (Months)</label>
+                        <input
+                          type="number"
+                          value={formData.oil_change_interval_months}
+                          onChange={(e) => setFormData({ ...formData, oil_change_interval_months: e.target.value })}
+                          placeholder="e.g., 6"
+                          className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-garage-accent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               {/* Notes */}
               <div className="md:col-span-2">
                 <label htmlFor="notes" className="block text-sm font-medium mb-2">
