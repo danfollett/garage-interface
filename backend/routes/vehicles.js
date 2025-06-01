@@ -113,7 +113,6 @@ router.post('/', uploadVehicleImage.single('image'), async (req, res) => {
       oil_type: oil_type || null,
       oil_change_interval_miles: oil_change_interval_miles ? parseInt(oil_change_interval_miles) : null,
       oil_change_interval_months: oil_change_interval_months ? parseInt(oil_change_interval_months) : null,
-      insurance_expiry: insurance_expiry || null,
       notes: notes || null,
       image_path: req.file ? /uploads/vehicles/${req.file.filename} : null
     };
