@@ -281,4 +281,16 @@ router.post('/vehicle/:vehicleId/quick-add', async (req, res) => {
   }
 });
 
+// Get last oil change for a vehicle
+router.get('/vehicle/:vehicleId/last-oil-change', async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const lastOilChange = await Maintenance.getLastOilChange(vehicleId);
+    res.json(lastOilChange);
+  } catch (error) {
+    console.error('Error fetching last oil change:', error);
+    res.status(500).json({ error: 'Failed to fetch last oil change' });
+  }
+});
+
 module.exports = router;
