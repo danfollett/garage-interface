@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Car, Bike, Plus, Grid, List, Wrench, ChevronRight } from 'lucide-react';
+import { Car, Bike, Plus, Grid, List, Wrench, ChevronRight, Droplet } from 'lucide-react';
 import { vehicleAPI, maintenanceAPI } from '../services/api';
 import VehicleCard from '../components/VehicleCard';
 import { getVehicleDisplayName, formatDate, formatCurrency } from '../utils/constants';
@@ -10,6 +10,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [recentMaintenance, setRecentMaintenance] = useState([]);
+  const [oilChangeData, setOilChangeData] = useState([]);
   const [stats, setStats] = useState({
     totalVehicles: 0,
     totalServices: 0,
@@ -28,6 +29,9 @@ const Home = () => {
     try {
       setLoading(true);
       setError(null);
+
+      console.log('maintenanceAPI:', maintenanceAPI); // Debug log
+      console.log('maintenanceAPI.getRecent:', maintenanceAPI.getRecent); // Debug log
 
       // Fetch vehicles - returns grouped by type
       const vehiclesData = await vehicleAPI.getAll();
@@ -58,6 +62,67 @@ const Home = () => {
         totalCost,
         lastService
       });
+
+      // Calculate oil change data for cars and motorcycles
+      const oilChangeInfo = [];
+      for (const vehicle of allVehicles) {
+        if (vehicle.type === 'car' || vehicle.type === 'motorcycle') {
+          try {
+            const lastOilChange = await maintenanceAPI.getLastOilChange(vehicle.id);
+            
+            let nextDueMiles = null;
+            let nextDueDate = null;
+            let status = 'unknown';
+            
+            if (lastOilChange && vehicle.oil_change_interval_miles) {
+              nextDueMiles = (lastOilChange.mileage || 0) + vehicle.oil_change_interval_miles;
+            }
+            
+            if (lastOilChange && vehicle.oil_change_interval_months) {
+              const lastChangeDate = new Date(lastOilChange.date);
+              nextDueDate = new Date(lastChangeDate);
+              nextDueDate.setMonth(nextDueDate.getMonth() + vehicle.oil_change_interval_months);
+            }
+            
+            // Determine status
+            if (nextDueMiles || nextDueDate) {
+              const today = new Date();
+              const milesDue = nextDueMiles && vehicle.current_mileage && nextDueMiles <= vehicle.current_mileage;
+              const dateDue = nextDueDate && nextDueDate <= today;
+              
+              if (milesDue || dateDue) {
+                status = 'overdue';
+              } else if (nextDueMiles && vehicle.current_mileage) {
+                const milesRemaining = nextDueMiles - vehicle.current_mileage;
+                if (milesRemaining <= 500) status = 'soon';
+                else status = 'ok';
+              } else if (nextDueDate) {
+                const daysRemaining = Math.floor((nextDueDate - today) / (1000 * 60 * 60 * 24));
+                if (daysRemaining <= 30) status = 'soon';
+                else status = 'ok';
+              }
+            }
+            
+            oilChangeInfo.push({
+              vehicle,
+              lastOilChange,
+              nextDueMiles,
+              nextDueDate,
+              status
+            });
+          } catch (error) {
+            console.error(`Error fetching oil change for vehicle ${vehicle.id}:`, error);
+          }
+        }
+      }
+      
+      // Sort by status (overdue first, then soon, then ok)
+      oilChangeInfo.sort((a, b) => {
+        const statusOrder = { overdue: 0, soon: 1, ok: 2, unknown: 3 };
+        return statusOrder[a.status] - statusOrder[b.status];
+      });
+      
+      setOilChangeData(oilChangeInfo);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err.message);
@@ -165,6 +230,80 @@ const Home = () => {
             </p>
           )}
         </div>
+
+        {/* Oil Change Reminders */}
+        {oilChangeData.length > 0 && (
+          <div className="bg-garage-gray rounded-lg p-5 mb-6">
+            <div className="flex items-center mb-4">
+              <Droplet size={20} className="mr-2 text-yellow-500" />
+              <h2 className="text-lg font-semibold">Oil Change Schedule</h2>
+            </div>
+            <div className="space-y-3">
+              {oilChangeData.map(({ vehicle, lastOilChange, nextDueMiles, nextDueDate, status }) => (
+                <Link
+                  key={vehicle.id}
+                  to={`/vehicle/${vehicle.id}`}
+                  className={`block p-3 rounded-lg transition-colors ${
+                    status === 'overdue' ? 'bg-red-900 hover:bg-red-800' :
+                    status === 'soon' ? 'bg-yellow-900 hover:bg-yellow-800' :
+                    'bg-gray-800 hover:bg-gray-700'
+                  }`}
+                >
+                  <div className="text-sm font-medium mb-1">
+                    {getVehicleDisplayName(vehicle)}
+                  </div>
+                  
+                  {status === 'unknown' ? (
+                    <p className="text-xs text-gray-400">No oil change data</p>
+                  ) : (
+                    <>
+                      {nextDueMiles && vehicle.current_mileage && (
+                        <div className="text-xs text-gray-300">
+                          Due at: {nextDueMiles.toLocaleString()} miles
+                          <span className={`ml-1 ${
+                            status === 'overdue' ? 'text-red-400' :
+                            status === 'soon' ? 'text-yellow-400' :
+                            'text-gray-400'
+                          }`}>
+                            ({status === 'overdue' ? 'Overdue by ' : ''}
+                            {Math.abs(nextDueMiles - vehicle.current_mileage).toLocaleString()} miles
+                            {status === 'overdue' ? '' : ' remaining'})
+                          </span>
+                        </div>
+                      )}
+                      
+                      {nextDueDate && (
+                        <div className="text-xs text-gray-300">
+                          Due by: {formatDate(nextDueDate)}
+                          <span className={`ml-1 ${
+                            status === 'overdue' ? 'text-red-400' :
+                            status === 'soon' ? 'text-yellow-400' :
+                            'text-gray-400'
+                          }`}>
+                            {(() => {
+                              const today = new Date();
+                              const days = Math.floor((nextDueDate - today) / (1000 * 60 * 60 * 24));
+                              if (days < 0) return `(${Math.abs(days)} days overdue)`;
+                              if (days === 0) return '(Due today)';
+                              return `(${days} days)`;
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {lastOilChange && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Last: {formatDate(lastOilChange.date)}
+                          {lastOilChange.mileage && ` at ${lastOilChange.mileage.toLocaleString()} miles`}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="space-y-3">
