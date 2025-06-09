@@ -59,4 +59,11 @@
   .glass-effect {
     @apply bg-white bg-opacity-10 backdrop-blur-md border border-white border-opacity-20;
   }
+  .container {
+    padding:0px !important;
+  }
+  .main-bg
+  {
+    background:linear-gradient(30deg,rgba(50, 50, 56, 1) 0%, rgba(49, 51, 49, 1) 50%, rgba(79, 69, 59, 1) 100%);
+  }
 }

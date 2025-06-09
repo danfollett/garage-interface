@@ -159,11 +159,12 @@ const Home = () => {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-80 bg-gray-900 p-6 overflow-y-auto border-r border-gray-800">
+      <div className="w-80 bg-neutral-900 p-6 overflow-y-auto border-r border-gray-800">
         {/* Logo/Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-garage-accent mb-2">My Garage</h1>
-          <p className="text-gray-400 text-sm">Vehicle Management System</p>
+          <img src='logo.png' />
+         {/* <h1 className="text-3xl font-bold text-garage-accent mb-2">My Garage</h1>*/}
+         {/*  <p className="text-gray-400 text-sm">Vehicle Management System</p>*/}
         </div>
 
         {/* Stats Overview */}
@@ -305,21 +306,12 @@ const Home = () => {
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="space-y-3">
-          <Link
-            to="/add-vehicle"
-            className="flex items-center justify-center space-x-2 bg-garage-accent hover:bg-orange-600 px-4 py-3 rounded-lg transition-colors w-full"
-          >
-            <Plus size={20} />
-            <span>Add Vehicle</span>
-          </Link>
-        </div>
+        
       </div>
 
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-7xl mx-auto">
+        <div className="mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold">My Vehicles</h2>
             <div className="flex items-center space-x-2">
@@ -396,6 +388,16 @@ const Home = () => {
               ))}
             </div>
           )}
+        </div>
+        {/* Quick Actions */}
+        <div className="space-y-3 absolute right-10 bottom-10 ">
+          <Link
+            to="/add-vehicle"
+            className="items-center text-center justify-center space-x-2 bg-garage-accent hover:bg-orange-600 px-4 py-3 rounded-lg transition-colors w-48"
+          >
+            <Plus size={20} class='inline'/>
+            <span>Add Vehicle</span>
+          </Link>
         </div>
       </div>
     </div>
